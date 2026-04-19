@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.6
+
 
 # ----- Build stage --------------------------------------------------
 FROM golang:1.25-alpine AS build

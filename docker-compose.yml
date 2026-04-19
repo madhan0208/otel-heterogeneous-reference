@@ -1,0 +1,37 @@
+# Docker Compose for local two-service smoke testing.
+#
+# Goal: prove that orders-api can reach inventory-api with HTTP trace
+# context propagation working correctly, BEFORE we introduce Kubernetes
+# complexity in Weekend 2.
+#
+# Run:       docker compose up --build
+# Tear down: docker compose down
+
+services:
+  inventory-api:
+    build: ./apps/inventory-api
+    image: inventory-api:0.1.0
+    container_name: inventory-api
+    environment:
+      OTEL_SERVICE_NAME: inventory-api
+      SERVICE_VERSION: 0.1.0
+      DEPLOYMENT_ENVIRONMENT: local
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  orders-api:
+    build:
+      context: ./apps/orders-api/OrdersApi
+    image: orders-api:0.1.0
+    container_name: orders-api
+    environment:
+      OTEL_SERVICE_NAME: orders-api
+      SERVICE_VERSION: 0.1.0
+      DEPLOYMENT_ENVIRONMENT: local
+      INVENTORY_API_URL: http://inventory-api:8081
+    depends_on:
+      - inventory-api
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
