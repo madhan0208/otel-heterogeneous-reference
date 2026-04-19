@@ -1,0 +1,7 @@
+*.log
+.git
+.gitignore
+Dockerfile
+.dockerignore
+vendor/
+**/*.test
