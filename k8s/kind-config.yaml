@@ -1,0 +1,22 @@
+# kind multi-node cluster config for local development.
+#
+# Why multi-node: realistic pod scheduling; future chaos experiments can kill
+# pods on one node while others stay up.
+#
+# extraPortMappings: exposes NodePort services directly on the host so we can
+# curl localhost:30080 without kubectl port-forward each time.
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: otel-playground
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080   # orders-api NodePort
+        hostPort: 30080
+        protocol: TCP
+      - containerPort: 30081   # inventory-api NodePort (debug only)
+        hostPort: 30081
+        protocol: TCP
+  - role: worker
+  - role: worker
