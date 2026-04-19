@@ -1,1 +1,19 @@
 
+
+# Go
+apps/**/vendor/
+apps/**/bin/
+*.exe
+
+# Python test harness (if added)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local kubeconfig
+*.kubeconfig
+
+# OS
+.DS_Store
+Thumbs.db
