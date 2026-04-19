@@ -4,7 +4,15 @@
 # Agent enriches each signal with k8s metadata and forwards to the gateway.
 #
 # Topology: DaemonSet. Each pod binds ports 4317/4318 on its node's IP.
-
+# Allow the agent to schedule on control-plane nodes too,
+# so every node has a local OTLP receiver.
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule
 mode: daemonset
 image:
   repository: otel/opentelemetry-collector-contrib

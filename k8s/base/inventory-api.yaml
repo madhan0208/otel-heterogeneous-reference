@@ -43,7 +43,13 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://$(OTEL_NODE_IP):4317"
+              value: "$(OTEL_NODE_IP):4317"
+            # Additional: gRPC OTLP requires explicit insecure for non-TLS;
+            # HTTP OTLP doesn't use these. Setting both is fine.
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
             # OTLP endpoint left at default localhost:4317 — exports fail
             # gracefully until we deploy the Collector agent in Session 2.
           resources:
