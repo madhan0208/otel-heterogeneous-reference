@@ -38,6 +38,12 @@ spec:
               value: "0.1.0"
             - name: DEPLOYMENT_ENVIRONMENT
               value: dev
+            - name: OTEL_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://$(OTEL_NODE_IP):4317"
             # OTLP endpoint left at default localhost:4317 — exports fail
             # gracefully until we deploy the Collector agent in Session 2.
           resources:

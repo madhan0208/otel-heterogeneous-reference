@@ -36,6 +36,12 @@ spec:
               value: "0.1.0"
             - name: DEPLOYMENT_ENVIRONMENT
               value: dev
+            - name: OTEL_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://$(OTEL_NODE_IP):4317"
             # Cross-service URL — uses Kubernetes DNS.
             # Format: <service-name>.<namespace>.svc.cluster.local
             - name: INVENTORY_API_URL
