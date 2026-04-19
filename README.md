@@ -2,7 +2,7 @@
 
 > Reference implementation of a Telemetry Minimum Standard (MVS) across heterogeneous services using OpenTelemetry.
 
-**Status**: 🚧 In active development. Target v1: two weekends from project start.
+**Status**: two services running, distributed tracing verified. Weekend 2 in progress: OTel Collector, Prometheus, Grafana, Jaeger, Loki, SLO alerts, chaos experiments.
 
 ## What this is
 
@@ -30,7 +30,15 @@ The system consists of:
 
 ## Quick start
 
-_`make up` target coming soon. For now, see `docker-compose.yml` for local two-service smoke testing._
+```bash
+docker compose up --build
+# In another terminal:
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{"itemId":"sku-123","qty":2}'
+```
+
+Two services start, orders-api calls inventory-api, and a single trace ID flows through both — verifying end-to-end W3C trace context propagation across .NET and Go.
 
 ## Documentation
 
