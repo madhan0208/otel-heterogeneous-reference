@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{1787FE1D-075E-9E68-7218-25F1BD1BBEAB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "orders-api", "orders-api", "{1183E14C-4902-1BCA-49D5-05D4A1669CA3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrdersApi", "apps\orders-api\OrdersApi\OrdersApi.csproj", "{BDDBA327-32D0-F398-6188-FD5772D021B5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDDBA327-32D0-F398-6188-FD5772D021B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDDBA327-32D0-F398-6188-FD5772D021B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDDBA327-32D0-F398-6188-FD5772D021B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDDBA327-32D0-F398-6188-FD5772D021B5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1183E14C-4902-1BCA-49D5-05D4A1669CA3} = {1787FE1D-075E-9E68-7218-25F1BD1BBEAB}
+		{BDDBA327-32D0-F398-6188-FD5772D021B5} = {1183E14C-4902-1BCA-49D5-05D4A1669CA3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {287EA6B2-9222-4852-844E-AE6723469E5C}
+	EndGlobalSection
+EndGlobal
