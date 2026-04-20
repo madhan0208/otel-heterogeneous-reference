@@ -20,6 +20,10 @@ image:
 # Host networking so the agent binds to node IPs directly — apps on the
 # same node can send to localhost:4317 without going through a Service.
 hostNetwork: true
+# CRITICAL: when hostNetwork is true, pods default to the host's resolv.conf
+# (which doesn't know cluster DNS). ClusterFirstWithHostNet uses Kubernetes'
+# CoreDNS first, so we can still resolve *.svc.cluster.local for the gateway.
+dnsPolicy: ClusterFirstWithHostNet
 
 # We need the k8sattributes processor, which requires permission to read
 # pod metadata. The chart creates the RBAC for us.
@@ -75,12 +79,13 @@ config:
       spike_limit_percentage: 20
 
   exporters:
-    # Forward everything to the gateway. DNS name matters — this is
-    # where the agent-to-gateway pipe lives.
-    otlp/gateway:
-      endpoint: otel-collector-gateway-opentelemetry-collector.observability.svc.cluster.local:4317
-      tls:
-        insecure: true  # in-cluster traffic; real prod uses mTLS
+    # Forward everything to the gateway over OTLP/HTTP (port 4318).
+    # HTTP was chosen over gRPC because gRPC's name resolution behavior
+    # in kind's CoreDNS caused intermittent "no children to pick from"
+    # failures. HTTP is equally valid OTLP and simpler to operate in-cluster.
+    otlphttp/gateway:
+      endpoint: http://otel-collector-gateway-opentelemetry-collector.observability.svc.cluster.local:4318
+      compression: gzip
 
   service:
     telemetry:
@@ -90,12 +95,12 @@ config:
       traces:
         receivers: [otlp]
         processors: [memory_limiter, k8sattributes, batch]
-        exporters: [otlp/gateway]
+        exporters: [otlphttp/gateway]
       metrics:
         receivers: [otlp]
         processors: [memory_limiter, k8sattributes, batch]
-        exporters: [otlp/gateway]
+        exporters: [otlphttp/gateway]
       logs:
         receivers: [otlp]
         processors: [memory_limiter, k8sattributes, batch]
-        exporters: [otlp/gateway]
+        exporters: [otlphttp/gateway]
