@@ -67,13 +67,19 @@ config:
           action: delete
 
   exporters:
-    # For now, export to the Collector's own debug log so we can verify
-    # the pipeline works end-to-end. In Session 3 we'll add Jaeger,
-    # Prometheus, and Loki exporters alongside this.
+    # Keep debug exporter for now — useful for verifying the pipeline.
+    # We'll remove it later once everything's stable.
     debug:
       verbosity: basic
       sampling_initial: 5
       sampling_thereafter: 200
+
+    # Jaeger via OTLP/gRPC. The jaeger-collector service exposes
+    # OTLP gRPC on port 4317 (because we set COLLECTOR_OTLP_ENABLED=true).
+    otlp/jaeger:
+      endpoint: jaeger.observability.svc.cluster.local:4317
+      tls:
+        insecure: true
 
   # Pipelines wire receivers -> processors -> exporters for each signal.
   service:
@@ -84,7 +90,8 @@ config:
       traces:
         receivers: [otlp]
         processors: [memory_limiter, attributes/scrub, batch]
-        exporters: [debug]
+        exporters: [debug, otlp/jaeger]
+
       metrics:
         receivers: [otlp]
         processors: [memory_limiter, batch]
