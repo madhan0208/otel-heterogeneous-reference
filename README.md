@@ -42,7 +42,7 @@ Two services start, orders-api calls inventory-api, and a single trace ID flows 
 
 ## Documentation
 
-- **[Telemetry Minimum Standard (MVS)](docs/telemetry-mvs.md)** — the standard every service conforms to _(coming soon)_
+- **[Telemetry Minimum Standard (MVS)](docs/telemetry-mvs.md)** — the standard every service conforms 
 - **[SLO definitions](docs/slos.md)** — availability and latency targets with burn-rate alerts _(coming soon)_
 - **[Chaos experiments](docs/chaos/)** — documented failure scenarios with post-mortems _(coming soon)_
 - **[Architectural decisions](DECISIONS.md)** — ADR log explaining key choices
