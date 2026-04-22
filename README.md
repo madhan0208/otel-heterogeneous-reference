@@ -2,7 +2,7 @@
 
 > Reference implementation of a Telemetry Minimum Standard (MVS) across heterogeneous services using OpenTelemetry.
 
-**Status**: two services running, distributed tracing verified. Weekend 2 in progress: OTel Collector, Prometheus, Grafana, Jaeger, Loki, SLO alerts, chaos experiments.
+**Status**: two services running, distributed tracing verified. OTel Collector, Prometheus, Grafana, Jaeger, Loki, SLO alerts, chaos experiments.
 
 ## What this is
 
