@@ -1,0 +1,44 @@
+# Standalone Prometheus — lean install for resource-constrained dev clusters.
+#
+# Why we chose this over kube-prometheus-stack:
+# kube-prometheus-stack brings ~1.5 GB of pods (Operator, Alertmanager,
+# node-exporter on every node, kube-state-metrics, multiple ServiceMonitors).
+# Our local kind cluster on an 8 GB laptop cannot fit that alongside the apps,
+# OTel Collectors, and Jaeger. Standalone Prometheus is ~150 MB total and
+# delivers the same demonstrable observability story for this project.
+
+server:
+  retention: 6h
+  persistentVolume:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 192Mi
+    limits:
+      cpu: 300m
+      memory: 384Mi
+
+# Disable extras we don't need for the app-level demo
+alertmanager:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
+
+# Custom scrape config — tells Prometheus where to find our app metrics.
+# The OTel Collector gateway exposes /metrics on port 8889.
+extraScrapeConfigs: |
+  - job_name: 'otel-collector-gateway'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+          - otel-collector-gateway-opentelemetry-collector.observability.svc.cluster.local:8889
+        labels:
+          source: 'otel-gateway'
