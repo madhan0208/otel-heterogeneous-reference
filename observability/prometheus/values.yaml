@@ -7,6 +7,72 @@
 # OTel Collectors, and Jaeger. Standalone Prometheus is ~150 MB total and
 # delivers the same demonstrable observability story for this project.
 
+# Mount our SLO rule files into Prometheus.
+# Keys are filenames; values are the YAML content as strings.
+serverFiles:
+  alerting_rules.yml:
+    groups:
+      - name: orders-api-availability
+        interval: 30s
+        rules:
+
+          - alert: OrdersApiHighErrorBudgetBurnFast
+            expr: |
+              (
+                (
+                  sum(rate(http_server_request_duration_seconds_count{exported_job="commerce/orders-api",http_route="/orders",http_response_status_code=~"5.."}[5m]))
+                  /
+                  sum(rate(http_server_request_duration_seconds_count{exported_job="commerce/orders-api",http_route="/orders"}[5m]))
+                ) > (14.4 * 0.01)
+              )
+              and
+              (
+                (
+                  sum(rate(http_server_request_duration_seconds_count{exported_job="commerce/orders-api",http_route="/orders",http_response_status_code=~"5.."}[1h]))
+                  /
+                  sum(rate(http_server_request_duration_seconds_count{exported_job="commerce/orders-api",http_route="/orders"}[1h]))
+                ) > (14.4 * 0.01)
+              )
+            for: 2m
+            labels:
+              severity: page
+              service: orders-api
+              slo: availability
+            annotations:
+              summary: "orders-api burning error budget too fast (14.4x)"
+              description: |
+                5xx error rate sustaining 14.4x burn over 5m AND 1h windows.
+                Monthly budget exhausted in ~2 hours at this rate.
+
+          - alert: OrdersApiSlowErrorBudgetBurn
+            expr: |
+              (
+                (
+                  sum(rate(http_server_request_duration_seconds_count{exported_job="commerce/orders-api",http_route="/orders",http_response_status_code=~"5.."}[30m]))
+                  /
+                  sum(rate(http_server_request_duration_seconds_count{exported_job="commerce/orders-api",http_route="/orders"}[30m]))
+                ) > (6 * 0.01)
+              )
+              and
+              (
+                (
+                  sum(rate(http_server_request_duration_seconds_count{exported_job="commerce/orders-api",http_route="/orders",http_response_status_code=~"5.."}[6h]))
+                  /
+                  sum(rate(http_server_request_duration_seconds_count{exported_job="commerce/orders-api",http_route="/orders"}[6h]))
+                ) > (6 * 0.01)
+              )
+            for: 15m
+            labels:
+              severity: ticket
+              service: orders-api
+              slo: availability
+            annotations:
+              summary: "orders-api slow error budget burn (6x)"
+              description: |
+                5xx error rate sustaining 6x burn over 30m AND 6h windows.
+                Monthly budget exhausted in ~5 days at this rate.
+
+
 server:
   retention: 6h
   persistentVolume:

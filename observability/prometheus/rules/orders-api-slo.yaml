@@ -1,0 +1,122 @@
+# Multi-window burn-rate alert rules for the orders-api availability SLO.
+#
+# These rules implement the alerting strategy defined in docs/slo.md.
+#
+# Pattern (Google SRE Workbook): a single page-fire requires the burn rate
+# to be sustained over BOTH a short window (catches fast burns quickly)
+# AND a long window (filters out false positives from brief blips).
+#
+# Math:
+#   - SLO target: 99% availability over 30 days  =>  error budget = 1%
+#   - Burn rate = (current error rate) / (1% allowed)
+#   - 14.4x burn would exhaust the 30-day budget in ~50 hours
+#   - 6x burn would exhaust it in ~5 days
+#
+# Note: in this local dev environment we don't have Alertmanager wired,
+# so these rules will be visible in the Prometheus UI's "Alerts" page
+# (firing/pending/inactive) but won't route anywhere. That's intentional —
+# the rules themselves are the artifact. Routing is v2 scope.
+
+groups:
+  - name: orders-api-availability
+    interval: 30s
+    rules:
+
+      # ----------------------------------------------------------------
+      # PAGE: 14.4x burn over short (5m) AND long (1h) windows
+      # Burns the entire 30-day budget in roughly 2 hours if sustained.
+      # ----------------------------------------------------------------
+      - alert: OrdersApiHighErrorBudgetBurnFast
+        expr: |
+          (
+            (
+              sum(rate(http_server_request_duration_seconds_count{
+                  exported_job="commerce/orders-api",
+                  http_route="/orders",
+                  http_response_status_code=~"5.."
+              }[5m]))
+              /
+              sum(rate(http_server_request_duration_seconds_count{
+                  exported_job="commerce/orders-api",
+                  http_route="/orders"
+              }[5m]))
+            ) > (14.4 * 0.01)
+          )
+          and
+          (
+            (
+              sum(rate(http_server_request_duration_seconds_count{
+                  exported_job="commerce/orders-api",
+                  http_route="/orders",
+                  http_response_status_code=~"5.."
+              }[1h]))
+              /
+              sum(rate(http_server_request_duration_seconds_count{
+                  exported_job="commerce/orders-api",
+                  http_route="/orders"
+              }[1h]))
+            ) > (14.4 * 0.01)
+          )
+        for: 2m
+        labels:
+          severity: page
+          service: orders-api
+          slo: availability
+        annotations:
+          summary: "orders-api burning error budget too fast (14.4x)"
+          description: |
+            5xx error rate on POST /orders is sustaining a 14.4x burn rate
+            of the 30-day availability error budget across both 5m and 1h
+            windows. At this rate the entire monthly budget is exhausted
+            in approximately 2 hours.
+
+            Run the runbook: docs/runbooks/orders-api-error-burst.md
+          runbook_url: "https://github.com/madhan0208/otel-heterogeneous-reference/blob/main/docs/runbooks/orders-api-error-burst.md"
+
+      # ----------------------------------------------------------------
+      # TICKET: 6x burn over short (30m) AND long (6h) windows
+      # Burns the budget in ~5 days. Slow leak — ticket, don't page.
+      # ----------------------------------------------------------------
+      - alert: OrdersApiSlowErrorBudgetBurn
+        expr: |
+          (
+            (
+              sum(rate(http_server_request_duration_seconds_count{
+                  exported_job="commerce/orders-api",
+                  http_route="/orders",
+                  http_response_status_code=~"5.."
+              }[30m]))
+              /
+              sum(rate(http_server_request_duration_seconds_count{
+                  exported_job="commerce/orders-api",
+                  http_route="/orders"
+              }[30m]))
+            ) > (6 * 0.01)
+          )
+          and
+          (
+            (
+              sum(rate(http_server_request_duration_seconds_count{
+                  exported_job="commerce/orders-api",
+                  http_route="/orders",
+                  http_response_status_code=~"5.."
+              }[6h]))
+              /
+              sum(rate(http_server_request_duration_seconds_count{
+                  exported_job="commerce/orders-api",
+                  http_route="/orders"
+              }[6h]))
+            ) > (6 * 0.01)
+          )
+        for: 15m
+        labels:
+          severity: ticket
+          service: orders-api
+          slo: availability
+        annotations:
+          summary: "orders-api slow error budget burn (6x)"
+          description: |
+            5xx error rate on POST /orders is sustaining a 6x burn rate
+            of the 30-day availability error budget. At this rate the
+            monthly budget is exhausted in ~5 days. Investigate during
+            normal hours.
