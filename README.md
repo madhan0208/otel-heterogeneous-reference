@@ -2,7 +2,7 @@
 
 > Reference implementation of a Telemetry Minimum Standard (MVS) across heterogeneous services using OpenTelemetry.
 
-**Status**: two services running, distributed tracing verified. OTel Collector, Prometheus, Grafana, Jaeger, Loki, SLO alerts, chaos experiments.
+**Status**: **Status**: v1 complete. See [Roadmap](#roadmap) for v2 scope.
 
 ## What this is
 
@@ -27,6 +27,48 @@ The system consists of:
 - **Prometheus + Alertmanager** — metrics and SLO-based alerting
 - **Loki** — log aggregation
 - **Grafana** — single pane of glass across all three signals
+
+
+## Chaos engineering
+
+[`docs/chaos/`](docs/chaos/) contains the post-mortem for our first
+deliberate failure injection: simultaneous deletion of all
+inventory-api pods during steady-state traffic.
+
+Key finding: the OpenTelemetry pipeline correctly surfaced the
+incident, Kubernetes recovered automatically (~30s impact), and the
+Prometheus burn-rate alert correctly remained Inactive because the
+incident duration was below the alert's `for: 2m` sustained-burn
+threshold. This validates the alert's tuning: short blips do not
+page humans.
+
+See [`docs/chaos/2026-04-29-inventory-api-pod-kill.md`](docs/chaos/2026-04-29-inventory-api-pod-kill.md).
+
+
+## Live demo
+
+A single `POST /orders` request flows through `orders-api` (.NET) and
+`inventory-api` (Go), producing a distributed trace, RED metrics, and
+correlated logs.
+
+### Distributed tracing in Jaeger
+
+![Distributed trace across orders-api and inventory-api](docs/screenshots/Jaeger.png)
+
+The trace shows the full request path: orders-api receives the HTTP request,
+makes an internal HTTP call to inventory-api for stock lookup, then completes
+the order. The trace spans both services with consistent trace_id, automatically
+propagated via W3C trace context — even though one service is .NET and the
+other is Go.
+
+### RED metrics in Grafana
+
+![Grafana RED dashboard for orders-api and inventory-api](docs/screenshots/Grafana1.png)(docs/screenshots/Grafana1.png)
+
+Three panels following Google's RED methodology: request rate, error rate,
+and p95 latency. Both services share the same dashboard because they emit
+the same OTel Semantic Convention attributes.
+
 
 ## Quick start
 
