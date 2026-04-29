@@ -49,25 +49,32 @@ See [`docs/chaos/2026-04-29-inventory-api-pod-kill.md`](docs/chaos/2026-04-29-in
 
 A single `POST /orders` request flows through `orders-api` (.NET) and
 `inventory-api` (Go), producing a distributed trace, RED metrics, and
-correlated logs.
+correlated logs through one observability pipeline.
 
 ### Distributed tracing in Jaeger
 
-![Distributed trace across orders-api and inventory-api](docs/screenshots/Jaeger.png)
+![Distributed trace spanning orders-api and inventory-api](docs/screenshots/jaeger-distributed-trace.png)
 
-The trace shows the full request path: orders-api receives the HTTP request,
-makes an internal HTTP call to inventory-api for stock lookup, then completes
-the order. The trace spans both services with consistent trace_id, automatically
-propagated via W3C trace context — even though one service is .NET and the
-other is Go.
+The trace shows the full request path: orders-api receives the HTTP
+request, makes an internal HTTP call to inventory-api for stock lookup,
+then completes the order. The trace spans both services with a
+consistent trace_id, automatically propagated via W3C trace context —
+even though one service is .NET and the other is Go.
 
 ### RED metrics in Grafana
 
-![Grafana RED dashboard for orders-api and inventory-api](docs/screenshots/Grafana1.png)(docs/screenshots/Grafana1.png)
+![Grafana RED dashboard — request rate by service and route](docs/screenshots/grafana-request-rate.png)
 
-Three panels following Google's RED methodology: request rate, error rate,
-and p95 latency. Both services share the same dashboard because they emit
-the same OTel Semantic Convention attributes.
+Request rate broken down by service and route, computed from
+OpenTelemetry-emitted histogram metrics scraped through the Collector
+gateway.
+
+![Grafana RED dashboard — error rate and latency](docs/screenshots/grafana-errors-and-latency.png)
+
+Error rate (4xx + 5xx) and p95 latency for each service. Both services
+share the same dashboard because they emit the same OTel Semantic
+Convention attributes — `http.response.status_code`, `http.route`,
+`exported_job` — regardless of language.
 
 
 ## Quick start
