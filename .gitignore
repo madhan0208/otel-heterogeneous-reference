@@ -20,3 +20,10 @@ Thumbs.db
 
 # .NET build outputs (explicit, to be safe)
 apps/**/obj/
+
+
+# .NET intermediate caches
+**/*.lscache
+**/.vs/
+**/bin/
+**/obj/
