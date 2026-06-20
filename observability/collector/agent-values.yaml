@@ -1,0 +1,106 @@
+# OpenTelemetry Collector — Agent tier.
+#
+# Role: one pod per node. Apps send OTLP to their local agent (localhost).
+# Agent enriches each signal with k8s metadata and forwards to the gateway.
+#
+# Topology: DaemonSet. Each pod binds ports 4317/4318 on its node's IP.
+# Allow the agent to schedule on control-plane nodes too,
+# so every node has a local OTLP receiver.
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule
+mode: daemonset
+image:
+  repository: otel/opentelemetry-collector-contrib
+
+# Host networking so the agent binds to node IPs directly — apps on the
+# same node can send to localhost:4317 without going through a Service.
+hostNetwork: true
+# CRITICAL: when hostNetwork is true, pods default to the host's resolv.conf
+# (which doesn't know cluster DNS). ClusterFirstWithHostNet uses Kubernetes'
+# CoreDNS first, so we can still resolve *.svc.cluster.local for the gateway.
+dnsPolicy: ClusterFirstWithHostNet
+
+# We need the k8sattributes processor, which requires permission to read
+# pod metadata. The chart creates the RBAC for us.
+presets:
+  kubernetesAttributes:
+    enabled: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  processors:
+    # k8sattributes adds pod, namespace, node metadata to every signal.
+    # This is how we get service.instance.id, k8s.pod.name, k8s.namespace.name
+    # populated per MVS §1 without the apps having to know anything about K8s.
+    k8sattributes:
+      passthrough: false
+      auth_type: "serviceAccount"
+      extract:
+        metadata:
+          - k8s.pod.name
+          - k8s.pod.uid
+          - k8s.namespace.name
+          - k8s.node.name
+          - k8s.pod.start_time
+      pod_association:
+        - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+        - sources:
+            - from: connection
+
+    batch:
+      timeout: 2s
+      send_batch_size: 512
+
+    memory_limiter:
+      check_interval: 1s
+      limit_percentage: 80
+      spike_limit_percentage: 20
+
+  exporters:
+    # Forward everything to the gateway over OTLP/HTTP (port 4318).
+    # HTTP was chosen over gRPC because gRPC's name resolution behavior
+    # in kind's CoreDNS caused intermittent "no children to pick from"
+    # failures. HTTP is equally valid OTLP and simpler to operate in-cluster.
+    otlphttp/gateway:
+      endpoint: http://otel-collector-gateway-opentelemetry-collector.observability.svc.cluster.local:4318
+      compression: gzip
+
+  service:
+    telemetry:
+      logs:
+        level: info
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, k8sattributes, batch]
+        exporters: [otlphttp/gateway]
+      metrics:
+        receivers: [otlp]
+        processors: [memory_limiter, k8sattributes, batch]
+        exporters: [otlphttp/gateway]
+      logs:
+        receivers: [otlp]
+        processors: [memory_limiter, k8sattributes, batch]
+        exporters: [otlphttp/gateway]

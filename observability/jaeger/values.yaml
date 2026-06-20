@@ -1,0 +1,38 @@
+# Jaeger — traces backend.
+#
+# For local dev, we use the all-in-one deployment with in-memory storage.
+# Production would use Cassandra or Elasticsearch as backend storage,
+# plus separate collector and query deployments. AllInOne is fine here:
+# we restart often, we don't need persistence, and it's one pod.
+
+provisionDataStore:
+  cassandra: false
+  elasticsearch: false
+  kafka: false
+
+storage:
+  type: memory
+
+allInOne:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  extraEnv:
+    - name: COLLECTOR_OTLP_ENABLED
+      value: "true"
+
+agent:
+  enabled: false
+collector:
+  enabled: false
+query:
+  enabled: false
+
+cassandra:
+  enabled: false
+  

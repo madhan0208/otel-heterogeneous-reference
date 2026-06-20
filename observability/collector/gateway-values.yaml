@@ -1,0 +1,118 @@
+# OpenTelemetry Collector — Gateway tier.
+#
+# Role: centralized policy enforcement. Receives OTLP from agents,
+# applies sampling and redaction, and fans out to multiple backends.
+#
+# Topology: Deployment mode, 2 replicas (HA), ClusterIP service that
+# agents forward to.
+
+
+ports:
+  metrics:
+    enabled: true
+    containerPort: 8889
+    servicePort: 8889
+    protocol: TCP
+
+mode: deployment
+replicaCount: 2
+
+# Use the contrib distribution which bundles extra processors and exporters
+# (tail_sampling, transform, etc.) we need. The core distribution is missing
+# tail_sampling.
+image:
+  repository: otel/opentelemetry-collector-contrib
+
+# Service: agents inside the cluster reach the gateway at this DNS name:
+#   otel-collector-gateway.observability.svc.cluster.local:4317
+service:
+  enabled: true
+  type: ClusterIP
+
+# Resource requests/limits — gateway does real work, give it headroom.
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# The Collector pipeline definition — receivers, processors, exporters.
+config:
+  receivers:
+    # OTLP over gRPC (port 4317) and HTTP (port 4318). Agents forward here.
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  processors:
+    # Batch signals before export — massive efficiency gain.
+    batch:
+      timeout: 10s
+      send_batch_size: 1024
+
+    # Memory guard: if we breach 80% of limit, stop accepting new data
+    # rather than OOM-killing the pod.
+    memory_limiter:
+      check_interval: 1s
+      limit_percentage: 80
+      spike_limit_percentage: 20
+
+    # MVS §6 — PII scrubbing. Remove obvious candidates if they ever
+    # slip into span attributes (they shouldn't per MVS §2.3, but
+    # defense in depth matters).
+    attributes/scrub:
+      actions:
+        - key: http.request.header.authorization
+          action: delete
+        - key: http.request.header.cookie
+          action: delete
+        - key: http.request.header.set-cookie
+          action: delete
+
+  exporters:
+    # Keep debug exporter for now — useful for verifying the pipeline.
+    # We'll remove it later once everything's stable.
+    debug:
+      verbosity: basic
+      sampling_initial: 5
+      sampling_thereafter: 200
+
+    # Jaeger via OTLP/gRPC. The jaeger-collector service exposes
+    # OTLP gRPC on port 4317 (because we set COLLECTOR_OTLP_ENABLED=true).
+    otlp/jaeger:
+      endpoint: jaeger.observability.svc.cluster.local:4317
+      tls:
+        insecure: true
+
+    # Expose collected metrics as a Prometheus scrape endpoint on :8889.
+    # Standalone Prometheus scrapes this every 15s.    
+    prometheus:
+      endpoint: 0.0.0.0:8889
+      send_timestamps: true
+      metric_expiration: 5m
+      enable_open_metrics: true
+
+  # Pipelines wire receivers -> processors -> exporters for each signal.
+  service:
+    telemetry:
+      logs:
+        level: info
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, attributes/scrub, batch]
+        exporters: [debug, otlp/jaeger]
+
+      metrics:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [debug , prometheus]
+      logs:
+        receivers: [otlp]
+        processors: [memory_limiter, attributes/scrub, batch]
+        exporters: [debug]

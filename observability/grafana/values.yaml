@@ -1,0 +1,25 @@
+# Standalone Grafana — minimal install.
+
+adminPassword: admin
+
+resources:
+  requests:
+    cpu: 30m
+    memory: 96Mi
+  limits:
+    cpu: 200m
+    memory: 192Mi
+
+# Pre-configure the Prometheus datasource so we don't have to do it in the UI
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-server.observability.svc.cluster.local
+        access: proxy
+        isDefault: true
+
+persistence:
+  enabled: false   # ephemeral storage; dashboards reset on pod restart

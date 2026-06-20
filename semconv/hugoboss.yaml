@@ -1,0 +1,145 @@
+groups:
+  - id: registry.order
+    type: attribute_group
+    brief: 'Custom attributes for order-related operations.'
+    attributes:
+      - id: order.channel
+        stability: development
+        type:
+          allow_custom_values: false
+          members:
+            - id: web
+              value: 'web'
+              stability: development
+              brief: 'Customer placed the order via web browser.'
+            - id: mobile
+              value: 'mobile'
+              stability: development
+              brief: 'Customer placed the order via mobile app.'
+            - id: store
+              value: 'store'
+              stability: development
+              brief: 'Order placed at a physical retail store.'
+        requirement_level: required
+        brief: 'The channel through which the order was placed.'
+        examples: ['web', 'mobile', 'store']
+
+      - id: order.brand_line
+        stability: development
+        type:
+          allow_custom_values: false
+          members:
+            - id: boss
+              value: 'boss'
+              stability: development
+              brief: 'Hugo Boss main brand line.'
+            - id: hugo
+              value: 'hugo'
+              stability: development
+              brief: 'Hugo brand line.'
+            - id: boss_orange
+              value: 'boss_orange'
+              stability: development
+              brief: 'Boss Orange brand line.'
+        requirement_level: required
+        brief: 'The brand line of the ordered item.'
+        examples: ['boss', 'hugo']
+
+      - id: order.value_eur
+        stability: development
+        type: double
+        requirement_level: recommended
+        brief: 'Total order value in EUR. Use only as span attribute, never as metric label (high cardinality).'
+        examples: [234.50, 89.99]
+
+      - id: order.customer_tier
+        stability: development
+        type:
+          allow_custom_values: false
+          members:
+            - id: standard
+              value: 'standard'
+              stability: development
+              brief: 'Standard customer.'
+            - id: vip
+              value: 'vip'
+              stability: development
+              brief: 'VIP customer with elevated SLA.'
+        requirement_level: recommended
+        brief: 'Customer tier influencing SLA expectations.'
+        examples: ['standard', 'vip']
+
+  - id: registry.inventory
+    type: attribute_group
+    brief: 'Custom attributes for inventory-related operations.'
+    attributes:
+      - id: inventory.warehouse
+        stability: development
+        type: string
+        requirement_level: required
+        brief: 'Identifier of the warehouse fulfilling the inventory lookup.'
+        examples: ['DE-MET-01', 'EU-BER-02']
+
+      - id: inventory.region
+        stability: development
+        type:
+          allow_custom_values: true
+          members:
+            - id: dach
+              value: 'DACH'
+              stability: development
+              brief: 'Germany, Austria, Switzerland.'
+            - id: emea
+              value: 'EMEA'
+              stability: development
+              brief: 'Europe, Middle East, Africa.'
+            - id: apac
+              value: 'APAC'
+              stability: development
+              brief: 'Asia Pacific.'
+        requirement_level: recommended
+        brief: 'Geographic region of the warehouse.'
+        examples: ['DACH', 'EMEA']
+
+  - id: registry.payment
+    type: attribute_group
+    brief: 'Custom attributes for payment processing.'
+    attributes:
+      - id: payment.processor
+        stability: development
+        type:
+          allow_custom_values: true
+          members:
+            - id: mock
+              value: 'mock'
+              stability: development
+              brief: 'Mock payment processor used for testing.'
+            - id: stripe
+              value: 'stripe'
+              stability: development
+              brief: 'Stripe payment processor.'
+            - id: adyen
+              value: 'adyen'
+              stability: development
+              brief: 'Adyen payment processor.'
+        requirement_level: recommended
+        brief: 'The payment processor handling the transaction.'
+        examples: ['stripe', 'mock']
+
+  - id: registry.app
+    type: attribute_group
+    brief: 'Organizational attributes added at the Collector tier, not by services.'
+    attributes:
+      - id: app.team
+        stability: development
+        type: string
+        requirement_level: required
+        brief: 'Team owning the service. Sourced from Kubernetes pod label by Collector k8sattributes processor.'
+        examples: ['ecommerce-platform', 'inventory']
+
+      - id: app.cost_center
+        stability: development
+        type: string
+        requirement_level: required
+        brief: 'Cost center for chargeback. Sourced from Kubernetes pod label by Collector.'
+        examples: ['CC-1142', 'CC-2031']
