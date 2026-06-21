@@ -40,9 +40,8 @@ steps:
    docker push $(ACR_NAME).azurecr.io/orders-api:$(Build.BuildId)
   displayName: 'Build and push orders-api image'
 
-
 - script: |
    az acr login --name $(ACR_NAME)
-   docker build -t $(ACR_NAME).azurecr.io/inventory-api:$(Build.BuildId) -f apps/inventory-api/inventoryApi/Dockerfile apps/inventory-api/inventoryApi
+   docker build -t $(ACR_NAME).azurecr.io/inventory-api:$(Build.BuildId) -f apps/inventory-api/Dockerfile apps/inventory-api
    docker push $(ACR_NAME).azurecr.io/inventory-api:$(Build.BuildId)
   displayName: 'Build and push inventory-api image'
