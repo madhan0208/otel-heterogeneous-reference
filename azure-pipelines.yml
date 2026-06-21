@@ -1,0 +1,50 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pr:
+- main  
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: acr-service-principal
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
+
+- script: python3 -m pip install pytest requests opentelemetry-proto
+  displayName: 'Install dependencies'
+
+- script: python3 -m pytest tests/mvs_compliance.py
+  displayName: 'Run MVS compliance tests'
+
+- script: |
+   az login --service-principal -u $(SP_APP_ID) -p $(SP_PASSWORD) --tenant $(SP_TENANT)
+  displayName: 'Login to Azure'
+
+- script: az --version
+  displayName: 'Check az CLI is available'
+
+- script: |
+   az acr login --name $(ACR_NAME)
+   docker build -t $(ACR_NAME).azurecr.io/orders-api:$(Build.BuildId) -f apps/orders-api/OrdersApi/Dockerfile apps/orders-api/OrdersApi
+   docker push $(ACR_NAME).azurecr.io/orders-api:$(Build.BuildId)
+  displayName: 'Build and push orders-api image'
+
+- script: |
+   az acr login --name $(ACR_NAME)
+   docker build -t $(ACR_NAME).azurecr.io/inventory-api:$(Build.BuildId) -f apps/inventory-api/Dockerfile apps/inventory-api
+   docker push $(ACR_NAME).azurecr.io/inventory-api:$(Build.BuildId)
+  displayName: 'Build and push inventory-api image'
