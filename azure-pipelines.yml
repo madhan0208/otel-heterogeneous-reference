@@ -43,6 +43,6 @@ steps:
 
 - script: |
    az acr login --name $(ACR_NAME)
-   docker build -t $(ACR_NAME).azurecr.io/inventory-api:$(Build.BuildId) -f apps/inventory-api/InventoryApi/Dockerfile apps/inventory-api/InventoryApi
+   docker build -t $(ACR_NAME).azurecr.io/inventory-api:$(Build.BuildId) -f apps/inventory-api/inventoryApi/Dockerfile apps/inventory-api/inventoryApi
    docker push $(ACR_NAME).azurecr.io/inventory-api:$(Build.BuildId)
   displayName: 'Build and push inventory-api image'
