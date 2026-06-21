@@ -9,6 +9,9 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+- group: acr-service-principal
+
 steps:
 - script: echo Hello, world!
   displayName: 'Run a one-line script'
@@ -23,3 +26,10 @@ steps:
 
 - script: python3 -m pytest tests/mvs_compliance.py
   displayName: 'Run MVS compliance tests'
+
+- script: |
+   az login --service-principal -u $(SP_APP_ID) -p $(SP_PASSWORD) --tenant $(SP_TENANT)
+  displayName: 'Login to Azure'
+
+- script: az --version
+  displayName: 'Check az CLI is available'
