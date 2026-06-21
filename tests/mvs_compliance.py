@@ -17,7 +17,7 @@ def _send_test_span(env="dev"):
     a2 = rs.resource.attributes.add(key="service.version")
     a2.value.string_value = "1.4.2"
     a3 = rs.resource.attributes.add(key="deployment.environment")
-    a3.value.string_value = env
+    a3.value.string_value = "production"
 
     scope_span = rs.scope_spans.add()
     span = scope_span.spans.add()
