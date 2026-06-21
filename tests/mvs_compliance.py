@@ -50,3 +50,5 @@ def test_deployment_environment_valid(otlp_capture):
     req = otlp_capture[0]
     env = get_attr(req.resource_spans[0].resource, "deployment.environment")
     assert env in {"dev", "staging", "prod"}
+
+# Note: The above tests assume that the span is sent with the specified attributes. In a real test suite, you would likely want to set up the test environment to ensure that the spans are generated with the expected attributes, or mock the span generation to control the test inputs.
