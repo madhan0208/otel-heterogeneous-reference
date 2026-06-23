@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: orders-api
+  labels: 
+    app: orders-api
+spec:
+  containers:
+    - name: web
+      image: nginx
+    
