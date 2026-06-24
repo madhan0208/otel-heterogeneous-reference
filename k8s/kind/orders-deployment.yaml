@@ -15,3 +15,14 @@ spec:
       containers:
       - name: web
         image: nginx
+        env:
+        - name: COLLECTOR_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: orders-api-configmap
+              key: COLLECTOR_ENDPOINT
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orders-api-secret
+              key: DB_PASSWORD
