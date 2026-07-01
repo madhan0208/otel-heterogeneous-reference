@@ -4,6 +4,7 @@ metadata:
   name: orders-api
   labels: 
     app: orders-api
+    env: dev
 spec:
   containers:
     - name: web
