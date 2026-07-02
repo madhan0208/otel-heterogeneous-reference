@@ -28,7 +28,7 @@ spec:
         - name: acr-secret
       containers:
         - name: inventory-api
-          image: madhanotelregistry.azurecr.io/inventory-api:6
+          image: madhanotelregistry.azurecr.io/inventory-api:13
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
