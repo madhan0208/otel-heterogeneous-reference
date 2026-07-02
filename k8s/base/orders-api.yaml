@@ -26,7 +26,7 @@ spec:
         - name: acr-secret
       containers:
         - name: orders-api
-          image: madhanotelregistry.azurecr.io/orders-api:5
+          image: madhanotelregistry.azurecr.io/orders-api:23
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
