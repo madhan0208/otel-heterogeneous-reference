@@ -1,7 +1,15 @@
-pipeline {
-    agent any
+pipeline 
+{
+    agent 
+    {
+        docker {
+            image 'python:3.12-slim'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
-    stages {
+    stages 
+    {
         stage('Install dependencies') {
             steps {
                 sh 'python3 -m pip install pytest requests opentelemetry-proto'
@@ -16,10 +24,12 @@ pipeline {
     }
 
     post {
-        success {
+        success 
+        {
             echo 'Pipeline passed — MVS compliance verified'
         }
-        failure {
+        failure 
+        {
             echo 'Pipeline failed — MVS compliance violation detected'
         }
     }
