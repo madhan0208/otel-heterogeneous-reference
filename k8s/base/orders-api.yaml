@@ -22,9 +22,11 @@ spec:
         app.kubernetes.io/name: orders-api
         app.kubernetes.io/part-of: otel-playground
     spec:
+      imagePullSecrets:
+        - name: acr-secret
       containers:
         - name: orders-api
-          image: orders-api:0.1.0
+          image: madhanotelregistry.azurecr.io/orders-api:5
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

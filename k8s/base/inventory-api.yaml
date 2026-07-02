@@ -24,9 +24,11 @@ spec:
         app.kubernetes.io/name: inventory-api
         app.kubernetes.io/part-of: otel-playground
     spec:
+      imagePullSecrets:
+        - name: acr-secret
       containers:
         - name: inventory-api
-          image: inventory-api:0.1.0
+          image: madhanotelregistry.azurecr.io/inventory-api:6
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
