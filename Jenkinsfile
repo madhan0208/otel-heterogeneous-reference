@@ -39,3 +39,4 @@ pipeline
         }
     }
 }
+// auto-trigger test
