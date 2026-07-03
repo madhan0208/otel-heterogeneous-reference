@@ -12,13 +12,13 @@ pipeline
     {
         stage('Install dependencies') {
             steps {
-                sh 'python3 -m pip install pytest requests opentelemetry-proto'
+                sh 'pip install --target=/tmp/pip-packages pytest requests opentelemetry-proto'
             }
         }
 
         stage('Run MVS compliance tests') {
             steps {
-                sh 'python3 -m pytest tests/mvs_compliance.py -v'
+                sh 'PYTHONPATH=/tmp/pip-packages python3 -m pytest tests/mvs_compliance.py -v'
             }
         }
     }
