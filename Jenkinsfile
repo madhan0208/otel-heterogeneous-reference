@@ -8,6 +8,11 @@ pipeline
         }
     }
 
+    triggers 
+    {
+        pollSCM('H/5 * * * *')
+    }
+
     stages 
     {
         stage('Install dependencies') {
