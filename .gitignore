@@ -26,4 +26,6 @@ apps/**/obj/
 **/*.lscache
 **/.vs/
 **/bin/
-**/obj/
+**/obj/.terraform/
+terraform.tfstate
+terraform.tfstate.backup
