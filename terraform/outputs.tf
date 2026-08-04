@@ -7,3 +7,7 @@ output "resource_group_location" {
   description = "The location of the resource group"
   value       = azurerm_resource_group.otel.location
 }
+output "acr_login_server" {
+  description = "The ACR login server URL"
+  value       = module.acr.login_server
+}

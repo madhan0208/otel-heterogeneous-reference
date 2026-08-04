@@ -21,3 +21,11 @@ resource "azurerm_resource_group" "otel" {
   name = var.resource_group_name
   location = var.location
 }
+module "acr" {
+  source = "./modules/container-registry"
+
+  name                = "madhanotelregistry"
+  resource_group_name = azurerm_resource_group.otel.name
+  location            = azurerm_resource_group.otel.location
+  sku                 = "Basic"
+}
