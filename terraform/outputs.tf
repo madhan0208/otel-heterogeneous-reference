@@ -1,7 +1,9 @@
 output "resource_group_name" {
-  value = azurerm_resource_group.otel.name
+  description = "The name of the resource group"
+  value       = azurerm_resource_group.otel.name
 }
 
-output "acr_login_server" {
-  value = azurerm_container_registry.otel.login_server
+output "resource_group_location" {
+  description = "The location of the resource group"
+  value       = azurerm_resource_group.otel.location
 }
